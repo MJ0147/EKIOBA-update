@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f6f4ef;
+  --fg: #1d2a33;
+  --accent: #f04a24;
+}
+
+html,
+body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(246, 244, 239, 0.88), rgba(246, 244, 239, 0.88)),
+    url("https://olive-adorable-cephalopod-171.mypinata.cloud/ipfs/bafkreia3ded5hrryyyvffpr62pmism5dpwopmx7bzwwjg5iqm4jlpm52ri");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: var(--fg);
+}
+
+@media (max-width: 768px) {
+  body {
+    background-attachment: scroll;
+    background-position: center top;
+  }
+}
