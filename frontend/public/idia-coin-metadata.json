@@ -1,0 +1,8 @@
+{
+  "name": "Idia Coin",
+  "symbol": "IDIA",
+  "description": "The native token for EKI OBA",
+  "image": "https://olive-adorable-cephalopod-171.mypinata.cloud/ipfs/bafkreifvopg5p2x34zliugefjubifbrv6vreh2sxnuclnuluzey5znfite",
+  "decimals": 9,
+  "requestFramePermissions": []
+}

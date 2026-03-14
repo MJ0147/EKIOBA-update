@@ -1,0 +1,87 @@
+version: "3.9"
+
+services:
+  cockroachdb:
+    image: cockroachdb/cockroach:v23.1.11
+    command: start-single-node --insecure --listen-addr=0.0.0.0:26257
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+    volumes:
+      - cockroach-data:/cockroach/cockroach-data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  cockroach-init:
+    image: cockroachdb/cockroach:v24.3.3
+    depends_on:
+      - cockroachdb
+    command: >
+      /bin/sh -c "
+      until cockroach sql --insecure --host=cockroachdb:26257 -e 'select 1'; do
+        sleep 2;
+      done;
+      cockroach sql --insecure --host=cockroachdb:26257 -e 'CREATE DATABASE IF NOT EXISTS ekioba_store; CREATE DATABASE IF NOT EXISTS ekioba_hotels;'
+      "
+
+  store:
+    build:
+      context: ./store
+    depends_on:
+      - cockroach-init
+      - redis
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8001:8000"
+    command: >
+      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+
+  cargo:
+    build:
+      context: ./cargo
+    ports:
+      - "8002:8000"
+
+  hotels:
+    build:
+      context: ./hotels
+    depends_on:
+      - cockroach-init
+    ports:
+      - "8003:8000"
+    command: >
+      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+
+  language_academy:
+    build:
+      context: ./language_academy
+    ports:
+      - "8004:8000"
+
+  ai_assistant:
+    build:
+      context: ./ai_assistant
+    ports:
+      - "8005:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      - store
+      - cargo
+      - hotels
+      - language_academy
+      - ai_assistant
+    ports:
+      - "3000:3000"
+
+volumes:
+  cockroach-data:
+  redis-data:

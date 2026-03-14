@@ -1,0 +1,92 @@
+name: Cloud Run CD
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_REGION: ${{ secrets.GCP_REGION }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: Enable required APIs
+        run: |
+          gcloud services enable run.googleapis.com cloudbuild.googleapis.com secretmanager.googleapis.com
+
+      - name: Deploy backend services
+        run: |
+          gcloud run deploy ekioba-store \
+            --source ./store \
+            --region "${GCP_REGION}" \
+            --project "${GCP_PROJECT_ID}" \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-secrets "DJANGO_SECRET_KEY=DJANGO_SECRET_KEY:latest,COCKROACHDB_URL=COCKROACHDB_STORE_URL:latest,SOLANA_RPC_URL=SOLANA_RPC_URL:latest,TON_API_KEY=TON_API_KEY:latest"
+
+          gcloud run deploy ekioba-cargo \
+            --source ./cargo \
+            --region "${GCP_REGION}" \
+            --project "${GCP_PROJECT_ID}" \
+            --platform managed \
+            --allow-unauthenticated
+
+          gcloud run deploy ekioba-hotels \
+            --source ./hotels \
+            --region "${GCP_REGION}" \
+            --project "${GCP_PROJECT_ID}" \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-secrets "DJANGO_SECRET_KEY=DJANGO_SECRET_KEY:latest,COCKROACHDB_URL=COCKROACHDB_HOTELS_URL:latest"
+
+          gcloud run deploy ekioba-language-academy \
+            --source ./language_academy \
+            --region "${GCP_REGION}" \
+            --project "${GCP_PROJECT_ID}" \
+            --platform managed \
+            --allow-unauthenticated
+
+          gcloud run deploy ekioba-ai-assistant \
+            --source ./ai_assistant \
+            --region "${GCP_REGION}" \
+            --project "${GCP_PROJECT_ID}" \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-secrets "TON_API_KEY=TON_API_KEY:latest"
+
+      - name: Capture Iyobo URL
+        id: iyobo-url
+        run: |
+          URL=$(gcloud run services describe ekioba-ai-assistant --region "${GCP_REGION}" --format='value(status.url)')
+          echo "iyobo_url=${URL}/chat" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy frontend
+        run: |
+          gcloud run deploy ekioba-frontend \
+            --source ./frontend \
+            --region "${GCP_REGION}" \
+            --project "${GCP_PROJECT_ID}" \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars "NEXT_PUBLIC_IYOBO_URL=${{ steps.iyobo-url.outputs.iyobo_url }}"

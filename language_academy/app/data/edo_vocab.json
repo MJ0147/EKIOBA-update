@@ -1,0 +1,62 @@
+[
+  {
+    "edo": "owie",
+    "english": "hello",
+    "category": "greeting",
+    "example": "Owie, ma re gha to?"
+  },
+  {
+    "edo": "vb'owo",
+    "english": "thank you",
+    "category": "gratitude",
+    "example": "Vb'owo for your help."
+  },
+  {
+    "edo": "khian",
+    "english": "come",
+    "category": "verb",
+    "example": "Khian vbe ekha."
+  },
+  {
+    "edo": "ya",
+    "english": "go",
+    "category": "verb",
+    "example": "Ya vbe owa."
+  },
+  {
+    "edo": "emwin",
+    "english": "water",
+    "category": "noun",
+    "example": "Re emwin rre."
+  },
+  {
+    "edo": "owa",
+    "english": "house",
+    "category": "noun",
+    "example": "Owa n'ogie."
+  },
+  {
+    "edo": "okpia",
+    "english": "man",
+    "category": "noun",
+    "example": "Okpia no gie."
+  },
+  {
+    "edo": "okhuo",
+    "english": "woman",
+    "category": "noun",
+    "example": "Okhuo no gie."
+  },
+  {
+    "edo": "ukhu",
+    "english": "door",
+    "category": "noun",
+    "example": "Kp'ukhu vbe owa."
+  },
+  {
+    "edo": "egbe",
+    "english": "book",
+    "category": "noun",
+    "example": "Re egbe na me."
+  }
+]
