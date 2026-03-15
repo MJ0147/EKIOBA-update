@@ -1,23 +1,9 @@
 FROM python:3.11-slim
-
+ENV PYTHONUNBUFFERED=1
 WORKDIR /app
-
-# Required for pip installs from git+https URLs.
-RUN apt-get update \
-	&& apt-get install -y --no-install-recommends git ca-certificates \
-	&& rm -rf /var/lib/apt/lists/*
-
-ARG GOOGLE_CLOUD_PYTHON_LIBRARIES_SOURCE=googleapis/google-cloud-python:main
-ENV GOOGLE_CLOUD_PYTHON_LIBRARIES_SOURCE=${GOOGLE_CLOUD_PYTHON_LIBRARIES_SOURCE}
-
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
-	&& export GCP_REPO="${GOOGLE_CLOUD_PYTHON_LIBRARIES_SOURCE%%:*}" \
-	&& export GCP_REF="${GOOGLE_CLOUD_PYTHON_LIBRARIES_SOURCE##*:}" \
-	&& pip install --no-cache-dir "git+https://github.com/${GCP_REPO}.git@${GCP_REF}#subdirectory=packages/google-cloud-storage"
-
+RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-
-EXPOSE 8000
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Iyobo often uses FastAPI/Uvicorn. 
+# If using standard Python, adjust this entrypoint to your main script.
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 app.main:app -k uvicorn.workers.UvicornWorker

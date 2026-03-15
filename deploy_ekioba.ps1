@@ -26,6 +26,10 @@ Write-Host "Deploying Ekioba to Project: $PROJECT_ID"
 Write-Host "Region: $REGION"
 Write-Host "------------------------------------------------"
 
+# 0. Check/Create Artifact Registry
+Write-Host "`n[0/5] Ensuring Artifact Registry 'ekioba' exists..."
+gcloud artifacts repositories create ekioba --repository-format=docker --location=$REGION --description="Ekioba Container Registry" 2>$null
+
 # 1. Enable APIs
 Write-Host "`n[1/5] Enabling Cloud Run, Artifact Registry, and Cloud Build APIs..."
 gcloud services enable run.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com secretmanager.googleapis.com cloudresourcemanager.googleapis.com
@@ -47,8 +51,11 @@ Write-Host "This will mount secrets from Google Secret Manager as environment va
 
 # Deploy AI Assistant (Iyobo)
 Write-Host "--> Deploying AI Assistant (ekioba-ai-assistant)..."
+$AI_IMAGE = "${REGION}-docker.pkg.dev/$PROJECT_ID/ekioba/ekioba-ai-assistant"
+gcloud builds submit ./ai_assistant --tag $AI_IMAGE
+
 $IYOBO_URL = gcloud run deploy ekioba-ai-assistant `
-    --source ./ai_assistant `
+    --image $AI_IMAGE `
     --region $REGION `
     --platform managed `
     --allow-unauthenticated `
@@ -60,12 +67,15 @@ Write-Host "    Success: AI Assistant live at $IYOBO_URL"
 
 # Deploy Store Service
 Write-Host "--> Deploying Store (ekioba-store)..."
+$STORE_IMAGE = "${REGION}-docker.pkg.dev/$PROJECT_ID/ekioba/ekioba-store"
+Write-Host "    Building Store image..."
+gcloud builds submit ./store --tag $STORE_IMAGE
+
 $STORE_URL = gcloud run deploy ekioba-store `
-    --source ./store `
+    --image $STORE_IMAGE `
     --region $REGION `
     --platform managed `
     --allow-unauthenticated `
-    --set-secrets "DJANGO_SECRET_KEY=DJANGO_SECRET_KEY:latest,COCKROACHDB_URL=COCKROACHDB_STORE_URL:latest,SOLANA_RPC_URL=SOLANA_RPC_URL:latest,TON_API_KEY=TON_API_KEY:latest" `
     --format "value(status.url)"
 
 if (-not $STORE_URL) { Write-Error "Failed to deploy Store service. Aborting."; exit 1 }
@@ -73,18 +83,28 @@ Write-Host "    Success: Store service live at $STORE_URL"
 
 # Deploy other backend microservices
 Write-Host "--> Deploying cargo (ekioba-cargo)..."
-gcloud run deploy "ekioba-cargo" --source "./cargo" --region $REGION --platform managed --allow-unauthenticated
+$CARGO_IMAGE = "${REGION}-docker.pkg.dev/$PROJECT_ID/ekioba/ekioba-cargo"
+gcloud builds submit ./cargo --tag $CARGO_IMAGE
+gcloud run deploy "ekioba-cargo" --image $CARGO_IMAGE --region $REGION --platform managed --allow-unauthenticated
 
 Write-Host "--> Deploying hotels (ekioba-hotels)..."
+$HOTELS_IMAGE = "${REGION}-docker.pkg.dev/$PROJECT_ID/ekioba/ekioba-hotels"
+gcloud builds submit ./hotels --tag $HOTELS_IMAGE
 gcloud run deploy "ekioba-hotels" `
-    --source "./hotels" `
+    --image $HOTELS_IMAGE `
     --region $REGION `
     --platform managed `
     --allow-unauthenticated `
     --set-secrets "DJANGO_SECRET_KEY=DJANGO_SECRET_KEY:latest,COCKROACHDB_URL=COCKROACHDB_HOTELS_URL:latest"
 
 Write-Host "--> Deploying language_academy (ekioba-language-academy)..."
-gcloud run deploy "ekioba-language-academy" --source "./language_academy" --region $REGION --platform managed --allow-unauthenticated
+$LA_IMAGE = "${REGION}-docker.pkg.dev/$PROJECT_ID/ekioba/ekioba-language-academy"
+gcloud builds submit ./language_academy --tag $LA_IMAGE
+gcloud run deploy "ekioba-language-academy" `
+    --image $LA_IMAGE `
+    --region $REGION `
+    --platform managed `
+    --allow-unauthenticated
 
 # 3. Build Frontend with Backend URLs
 Write-Host "`n[3/5] Building frontend with backend service URLs..."
