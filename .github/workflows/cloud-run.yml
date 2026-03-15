@@ -37,8 +37,15 @@ jobs:
 
       - name: Deploy backend services
         run: |
+          # Build Images for all services to avoid "resource is empty" errors
+          gcloud builds submit ./store --tag "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/ekioba/ekioba-store"
+          gcloud builds submit ./cargo --tag "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/ekioba/ekioba-cargo"
+          gcloud builds submit ./hotels --tag "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/ekioba/ekioba-hotels"
+          gcloud builds submit ./language_academy --tag "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/ekioba/ekioba-language-academy"
+          gcloud builds submit ./ai_assistant --tag "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/ekioba/ekioba-ai-assistant"
+          
           gcloud run deploy ekioba-store \
-            --source ./store \
+            --image "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/ekioba/ekioba-store" \
             --region "${GCP_REGION}" \
             --project "${GCP_PROJECT_ID}" \
             --platform managed \
@@ -46,14 +53,14 @@ jobs:
             --set-secrets "DJANGO_SECRET_KEY=DJANGO_SECRET_KEY:latest,COCKROACHDB_URL=COCKROACHDB_STORE_URL:latest,SOLANA_RPC_URL=SOLANA_RPC_URL:latest,TON_API_KEY=TON_API_KEY:latest"
 
           gcloud run deploy ekioba-cargo \
-            --source ./cargo \
+            --image "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/ekioba/ekioba-cargo" \
             --region "${GCP_REGION}" \
             --project "${GCP_PROJECT_ID}" \
             --platform managed \
             --allow-unauthenticated
 
           gcloud run deploy ekioba-hotels \
-            --source ./hotels \
+            --image "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/ekioba/ekioba-hotels" \
             --region "${GCP_REGION}" \
             --project "${GCP_PROJECT_ID}" \
             --platform managed \
@@ -61,14 +68,14 @@ jobs:
             --set-secrets "DJANGO_SECRET_KEY=DJANGO_SECRET_KEY:latest,COCKROACHDB_URL=COCKROACHDB_HOTELS_URL:latest"
 
           gcloud run deploy ekioba-language-academy \
-            --source ./language_academy \
+            --image "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/ekioba/ekioba-language-academy" \
             --region "${GCP_REGION}" \
             --project "${GCP_PROJECT_ID}" \
             --platform managed \
             --allow-unauthenticated
 
           gcloud run deploy ekioba-ai-assistant \
-            --source ./ai_assistant \
+            --image "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/ekioba/ekioba-ai-assistant" \
             --region "${GCP_REGION}" \
             --project "${GCP_PROJECT_ID}" \
             --platform managed \
