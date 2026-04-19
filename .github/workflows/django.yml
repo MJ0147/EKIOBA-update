@@ -32,9 +32,10 @@ jobs:
     - name: Run Tests
       working-directory: store
       env:
-        DJANGO_DB_ENGINE: sqlite
-        DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'ci-only-secret-key' }}
+        DJANGO_DB_ENGINE: ${{ vars.DJANGO_DB_ENGINE || 'sqlite' }}
+        COCKROACHDB_URL: ${{ vars.COCKROACHDB_URL || secrets.COCKROACHDB_URL }}
+        DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
         TON_API_KEY: ${{ secrets.TON_API_KEY }}
         SOLANA_API_KEY: ${{ secrets.SOLANA_API_KEY }}
       run: |
-        python manage.py test --verbosity=2
+        python manage.py test
