@@ -28,11 +28,11 @@ jobs:
 
       - name: Run Django tests
         env:
-          DJANGO_DB_ENGINE: sqlite
-          DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'ci-only-secret-key' }}
+          DJANGO_DB_ENGINE: ${{ vars.DJANGO_DB_ENGINE || 'sqlite' }}
+          COCKROACHDB_URL: ${{ vars.COCKROACHDB_URL || secrets.COCKROACHDB_URL }}
         run: |
           cd store
-          python manage.py test --verbosity=2
+          python manage.py test
 
   frontend:
     runs-on: ubuntu-latest
