@@ -6,7 +6,9 @@ from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", get_random_secret_key())
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", get_random_secret_key())
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///db.sqlite3")
+DJANGO_DB_ENGINE = os.getenv("DJANGO_DB_ENGINE", "sqlite")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = ["*"]
 
@@ -56,14 +58,17 @@ ASGI_APPLICATION = "store_service.asgi.application"
 
 
 def _database_config_from_env() -> dict[str, object]:
-    db_engine = os.getenv("DJANGO_DB_ENGINE", "django_cockroachdb")
+    db_engine = DJANGO_DB_ENGINE
     if db_engine == "sqlite":
+        sqlite_name = DATABASE_URL.replace("sqlite:///", "", 1)
+        if not os.path.isabs(sqlite_name):
+            sqlite_name = str(BASE_DIR / sqlite_name)
         return {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": os.getenv("SQLITE_DB_PATH", str(BASE_DIR / "db.sqlite3")),
+            "NAME": os.getenv("SQLITE_DB_PATH", sqlite_name),
         }
 
-    database_url = os.getenv("COCKROACHDB_URL", "")
+    database_url = DATABASE_URL
     if not database_url:
         return {
             "ENGINE": db_engine,
