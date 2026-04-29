@@ -10,7 +10,10 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", get_random_secret_key())
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///db.sqlite3")
 DJANGO_DB_ENGINE = os.getenv("DJANGO_DB_ENGINE", "sqlite")
 DEBUG = os.getenv("DEBUG", "False") == "True"
-ALLOWED_HOSTS = ["*"]
+
+# In production set ALLOWED_HOSTS to your actual domain(s), e.g. "ekioba.com,*.run.app"
+_raw_hosts = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1" if not DEBUG else "*")
+ALLOWED_HOSTS = [h.strip() for h in _raw_hosts.split(",") if h.strip()]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -73,11 +76,11 @@ def _database_config_from_env() -> dict[str, object]:
         return {
             "ENGINE": db_engine,
             "NAME": "ekioba_store",
-            "USER": "root",
+            "USER": os.getenv("DB_USER", "postgres"),
             "PASSWORD": "",
-            "HOST": "cockroachdb",
-            "PORT": 26257,
-            "OPTIONS": {"sslmode": "disable"},
+            "HOST": os.getenv("DB_HOST", "localhost"),
+            "PORT": int(os.getenv("DB_PORT", "5432")),
+            "OPTIONS": {"sslmode": os.getenv("DB_SSLMODE", "disable")},
         }
 
     parsed = urlparse(database_url)
