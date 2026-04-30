@@ -1,12 +1,18 @@
-﻿"""
-Python replacement for migrated file: .\package.json
-Generated during Node.js to Python cleanup.
-"""
-
-def main() -> None:
-    # TODO: Implement equivalent Python logic for this module.
-    pass
-
-if __name__ == "__main__":
-    main()
-
+fastapi
+uvicorn[standard]
+gunicorn
+pydantic-settings
+sqlalchemy
+alembic
+pymysql
+pyodbc
+python-multipart
+httpx
+loguru
+python-jose[cryptography]
+passlib[bcrypt]
+openai
+pytest
+pytest-asyncio
+ruff
+black
