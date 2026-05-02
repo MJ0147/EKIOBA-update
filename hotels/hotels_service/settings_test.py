@@ -7,3 +7,8 @@ DATABASES = {
         "NAME": ":memory:",
     }
 }
+
+# Keep test requests on plain HTTP in local runners.
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False

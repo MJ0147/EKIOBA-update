@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 os.environ.setdefault("DATABASE_URL", "sqlite+pysqlite:///:memory:")
-os.environ.setdefault("SECRET_KEY", "local-test-secret")
+os.environ.setdefault("SECRET_KEY", "local-test-secret-key-for-testing-only")
 
 from app.main import app
 
