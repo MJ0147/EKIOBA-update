@@ -7,3 +7,4 @@ django-redis
 redis
 python-dotenv
 django-cors-headers
+requests
