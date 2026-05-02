@@ -26,9 +26,9 @@ jobs:
           pip install -r store/requirements.txt
 
       - name: Run Django tests
+        working-directory: store
         env:
           DJANGO_DB_ENGINE: sqlite
-        working-directory: store
         run: |
           python manage.py test --settings=store_service.settings_test
 
@@ -47,21 +47,13 @@ jobs:
         run: |
           echo "NEXT_PUBLIC_BACKEND_URL=${{ secrets.BACKEND_URL_PROD }}" >> frontend/.env.production
 
-      - name: Install dependencies
-        run: |
-          if [ ! -f frontend/package.json ]; then
-            echo "frontend/package.json not found, skipping Node.js dependency install."
-            exit 0
-          fi
-          cd frontend
-          npm install
-
-      - name: Build Next.js frontend
+      - name: Install and build Next.js frontend
         run: |
           if [ ! -f frontend/package.json ]; then
             echo "frontend/package.json not found, skipping Next.js build."
             exit 0
           fi
           cd frontend
+          npm install
           npm run build
 
