@@ -8,3 +8,4 @@ redis
 python-dotenv
 django-cors-headers
 requests
+whitenoise
